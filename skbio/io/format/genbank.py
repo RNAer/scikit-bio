@@ -427,8 +427,7 @@ def _parse_single_genbank(chunks):
         elif header == 'ORIGIN':
             sequence = parsed
         elif header == 'FEATURES':
-            positional_metadata = pd.SparseDataFrame(
-                parsed, default_fill_value=False)
+            positional_metadata = pd.SparseDataFrame.from_items(parsed)
         else:
             metadata[header] = parsed
     return sequence, metadata, positional_metadata
@@ -611,7 +610,6 @@ def _serialize_source(header, obj, indent=12):
 def _parse_features(lines, length):
     '''Parse FEATURES field.
     '''
-    features = {}
     # skip the 1st FEATURES line
     if lines[0].startswith('FEATURES'):
         lines = lines[1:]
@@ -623,9 +621,7 @@ def _parse_features(lines, length):
         skip_blanks=True, strip=False)
     for section in section_splitter(lines):
         # print(i) ; continue
-        k, v = _parse_single_feature(section, length)
-        features[k] = v
-    return features
+        yield _parse_single_feature(section, length)
 
 
 def _serialize_features(header, obj, indent=21):
@@ -690,7 +686,7 @@ def _parse_single_feature(lines, length):
     for k in feature_md:
         if isinstance(feature_md[k], list):
             feature_md[k] = tuple(feature_md[k])
-    return Feature(**feature_md), pmd
+    return Feature(**feature_md), pd.SparseSeries(pmd, fill_value=False)
 
 
 def _serialize_single_feature(obj, indent=21):
