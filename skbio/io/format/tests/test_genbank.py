@@ -110,7 +110,7 @@ class GenBankIOTests(TestCase):
                         'Gammaproteobacteria; Enterobacteriales; '
                         'Enterobacteriaceae; Escherichia.'},
              'VERSION': 'M14399.1  GI:145229'},
-            pd.DataFrame(
+            pd.SparseDataFrame(
                 data=np.ones([63, 2], dtype=bool),
                 columns=[Feature(db_xref='"taxon:562"',
                                  left_partial_=False,
@@ -132,7 +132,8 @@ class GenBankIOTests(TestCase):
                                  right_partial_=True,
                                  transl_table='11',
                                  translation='"MKQSTIALAVLPLLFTPVTKA"',
-                                 type_='CDS')]),
+                                 type_='CDS')],
+                default_fill_value=False),
             RNA)
 
         # test:
@@ -169,20 +170,21 @@ class GenBankIOTests(TestCase):
               'SOURCE': {'ORGANISM': 'Bacteria',
                          'taxonomy': 'Unclassified.'},
               'VERSION': 'AAB29917.1  GI:545426'},
-             pd.DataFrame(data=np.ones([9, 2], dtype=bool),
-                          columns=[
-                              Feature(left_partial_=False,
-                                      location='1..9',
-                                      organism='"Bacteria"',
-                                      rc_=False,
-                                      right_partial_=False,
-                                      type_='source'),
-                              Feature(left_partial_=False,
-                                      location='1..>9',
-                                      product='"L-carnitine amidase"',
-                                      rc_=False,
-                                      right_partial_=True,
-                                      type_='Protein')]),
+             pd.SparseDataFrame(
+                 data=np.ones([9, 2], dtype=bool),
+                 columns=[Feature(left_partial_=False,
+                                  location='1..9',
+                                  organism='"Bacteria"',
+                                  rc_=False,
+                                  right_partial_=False,
+                                  type_='source'),
+                          Feature(left_partial_=False,
+                                  location='1..>9',
+                                  product='"L-carnitine amidase"',
+                                  rc_=False,
+                                  right_partial_=True,
+                                  type_='Protein')],
+                 default_fill_value=False),
              Protein),
 
             ('catgcaggc',
@@ -201,22 +203,23 @@ class GenBankIOTests(TestCase):
                          'Micrococcales; Promicromonosporaceae; '
                          'Xylanimonas; environmental samples.'},
               'VERSION': 'HQ018078.1  GI:304421728'},
-             pd.DataFrame(data=np.array([[1] * 9, [0] + [1] * 7 + [0]],
-                                        dtype=bool).T,
-                          columns=[
-                              Feature(country='"Brazil: Parana, Paranavai"',
-                                      environmental_sample='',
-                                      left_partial_=False,
-                                      location='1..9',
-                                      rc_=False,
-                                      right_partial_=False,
-                                      type_='source'),
-                              Feature(left_partial_=True,
-                                      location='complement(<2..>8)',
-                                      product='"16S ribosomal RNA"',
-                                      rc_=True,
-                                      right_partial_=True,
-                                      type_='rRNA')]),
+             pd.SparseDataFrame(
+                 data=np.array([[1] * 9, [0] + [1] * 7 + [0]],
+                               dtype=bool).T,
+                 columns=[Feature(country='"Brazil: Parana, Paranavai"',
+                                  environmental_sample='',
+                                  left_partial_=False,
+                                  location='1..9',
+                                  rc_=False,
+                                  right_partial_=False,
+                                  type_='source'),
+                          Feature(left_partial_=True,
+                                  location='complement(<2..>8)',
+                                  product='"16S ribosomal RNA"',
+                                  rc_=True,
+                                  right_partial_=True,
+                                  type_='rRNA')],
+                 default_fill_value=False),
              DNA))
 
 
@@ -367,6 +370,11 @@ REFERENCE   1  (bases 1 to 154478)
         obs = _genbank_to_dna(self.multi_fp, seq_num=i+1)
         exp = DNA(exp[0], metadata=exp[1], lowercase=True,
                   positional_metadata=exp[2])
+        a1 = obs.positional_metadata.columns
+        a2 = exp.positional_metadata.columns
+        print(a1==a2)
+        print(a1)
+        print(a2)
         self.assertEqual(exp, obs)
 
     def test_genbank_to_protein(self):
