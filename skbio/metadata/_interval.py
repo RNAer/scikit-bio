@@ -11,7 +11,7 @@ import copy
 import functools
 
 from ._intersection import IntervalTree
-from skbio.util._decorator import experimental
+from skbio.util._decorator import experimental, classonlymethod
 
 
 class Interval:
@@ -558,6 +558,58 @@ fuzzy=[(False, False)], metadata={'gene': 'sagB'})
 
         # DONT' forget this!!!
         self._is_stale_tree = True
+
+    @classonlymethod
+    @experimental(as_of="0.5.0-dev")
+    def concat(cls, intvl_metadata):
+        '''Concatenate an iterable of ``IntervalMetadata`` objects.
+
+        Parameters
+        ----------
+        intvl_metadata : Iterable (IntervalMetadata)
+
+        Returns
+        -------
+        IntervalMetadata
+
+        Examples
+        --------
+        >>> from skbio.metadata import IntervalMetadata
+        >>> im1 = IntervalMetadata(3)
+        >>> _ = im1.add([(0, 2)], [(True, False)], {'gene': 'sagA'})
+        >>> im2 = IntervalMetadata(4)
+        >>> _ = im2.add([(1, 4)], [(True, True)], {'gene': 'sagB'})
+        >>> IntervalMetadata.concat([im1, im2])  # doctest: +ELLIPSIS
+        2 interval features
+        -------------------
+        Interval(interval_metadata=<...>, bounds=[(0, 2)], \
+fuzzy=[(True, False)], metadata={'gene': 'sagA'})
+        Interval(interval_metadata=<...>, bounds=[(4, 7)], \
+fuzzy=[(True, True)], metadata={'gene': 'sagB'})
+
+        '''
+        intvl_metadata = list(intvl_metadata)
+
+        if len(intvl_metadata) == 0:
+            return cls(0)
+
+        upper_bound = 0
+        for im in intvl_metadata:
+            upper_bound += im.upper_bound
+        new = cls(upper_bound)
+
+        length = 0
+        for i, im in enumerate(intvl_metadata):
+            for intvl in im._intervals:
+                bounds = intvl.bounds
+                fuzzy = intvl.fuzzy
+                if i != 0:
+                    bounds = [(start + length, end + length)
+                              for start, end in bounds]
+                new.add(bounds, fuzzy, intvl.metadata)
+            length += im.upper_bound
+
+        return new
 
     @experimental(as_of='0.5.0-dev')
     def sort(self, ascending=True):
