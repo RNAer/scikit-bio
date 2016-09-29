@@ -2455,8 +2455,7 @@ class TestDistance(TestSequenceBase):
 # (TestSequence.test_repr) but cannot be relied upon for coverage (the unit
 # tests take care of this)
 class SequenceReprDoctests:
-    r"""
-    >>> import pandas as pd
+    r""">>> import pandas as pd
     >>> from skbio import Sequence
 
     Empty (minimal) sequence:
@@ -2624,9 +2623,10 @@ class SequenceReprDoctests:
     57180 opqrstuvwx yzABCDEFGH IJKLMNOPQR STUVWXYZ!" #$%&'()*+, -./:;<=>?@
     57240 [\]^_`{|}~ 0123456789 a space
 
-    Supply horrendous metadata and positional metadata to exercise a variety of
-    metadata formatting cases and rules. Sorting should be by type, then by
-    value within each type (Python 3 doesn't allow sorting of mixed types):
+    Supply horrendous metadata, positional, and interval metadata to
+    exercise a variety of metadata formatting cases and rules. Sorting
+    should be by type, then by value within each type (Python 3
+    doesn't allow sorting of mixed types):
 
     >>> metadata = {
     ...     # str key, str value
@@ -2670,8 +2670,14 @@ class SequenceReprDoctests:
     ...     ('abc' * 90, [True, False, False, True]),
     ...     # None key
     ...     (None, range(4))])
+    >>> interval_metadata = IntervalMetadata(4)
+    >>> _ = interval_metadata.add([(0, 2), (1, 3)],
+    ...                           [(False, True), (False, False)],
+    ...                           {'gene': 'p53'})
+    >>> _ = interval_metadata.add([(1, 4)])
     >>> Sequence('ACGT', metadata=metadata,
-    ...          positional_metadata=positional_metadata)
+    ...          positional_metadata=positional_metadata,
+    ...          interval_metadata=interval_metadata)
     Sequence
     -----------------------------------------------------------------------
     Metadata:
@@ -2701,10 +2707,13 @@ class SequenceReprDoctests:
         42: <dtype: object>
         <class 'str'>: <dtype: bool>
         None: <dtype: int64>
+    Interval metadata:
+        2 interval features
     Stats:
         length: 4
     -----------------------------------------------------------------------
     0 ACGT
+
     """
     pass
 
